@@ -38,7 +38,7 @@ public class FireDispatchImpl implements FireDispatch {
   }
 
   @Override
-  public void dispatchFirefighers(CityNode... burningBuildings) {
+  public void dispatchFirefighters(CityNode... burningBuildings) {
     // Optimize for overall distance traveled among all firefighters.
     // TODO: sort
     for (CityNode burningBuilding : burningBuildings) {
