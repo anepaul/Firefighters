@@ -20,14 +20,9 @@ public class FirefighterImpl implements Firefighter {
     return distance;
   }
 
-  protected void travelTo(CityNode newLocation) {
+  public void travelTo(CityNode newLocation) {
     if (Objects.isNull(newLocation)) return;
-    distance += distanceTo(newLocation);
+    distance += location.distanceTo(newLocation);
     this.location = newLocation;
-  }
-
-  protected int distanceTo(CityNode newLocation) {
-    return Math.abs(this.location.getX() - newLocation.getX()) +
-            Math.abs(this.location.getY() - newLocation.getY());
   }
 }

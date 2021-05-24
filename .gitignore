@@ -4,6 +4,7 @@
 *.iml
 *.ipr
 out/
+lib/
 
 # General - MacOS
 .DS_Store

@@ -20,6 +20,11 @@ public class CityNode {
     this.yCoordinate = yCoordinate;
   }
 
+  public int distanceTo(CityNode anotherCity) {
+    return Math.abs(this.getY() - anotherCity.getY()) +
+            Math.abs(this.getX() - anotherCity.getX());
+  }
+
   /**
    * Get the X coordinate of this node
    *

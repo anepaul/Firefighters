@@ -28,6 +28,22 @@ public class BasicScenarios {
   }
 
   @Test
+  public void singleFireAtStartingLocation() throws FireproofBuildingException {
+    City basicCity = new CityImpl(5, 5, new CityNode(1, 1));
+    FireDispatch fireDispatch = basicCity.getFireDispatch();
+
+    CityNode fireNode = new CityNode(0, 0);
+    Pyromaniac.setFire(basicCity, fireNode);
+
+    fireDispatch.setFirefighters(1);
+    fireDispatch.dispatchFirefighters(fireNode);
+
+    Firefighter firefighter = fireDispatch.getFirefighters().get(0);
+    Assert.assertFalse(basicCity.getBuilding(fireNode).isBurning());
+    Assert.assertEquals(0, firefighter.distanceTraveled());
+  }
+
+  @Test
   public void singleFireDistanceTraveledDiagonal() throws FireproofBuildingException {
     City basicCity = new CityImpl(2, 2, new CityNode(0, 0));
     FireDispatch fireDispatch = basicCity.getFireDispatch();
