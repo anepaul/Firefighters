@@ -6,8 +6,12 @@ import main.api.Firefighter;
 import java.util.Objects;
 
 public class FirefighterImpl implements Firefighter {
-  private CityNode location = new CityNode(0,0);
+  private CityNode location;
   private int distance = 0;
+
+  public FirefighterImpl(CityNode location) {
+    this.location = location;
+  }
 
   @Override
   public CityNode getLocation() {

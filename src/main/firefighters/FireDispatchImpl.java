@@ -20,9 +20,10 @@ public class FireDispatchImpl implements FireDispatch {
 
   @Override
   public void setFirefighters(int numFirefighters) {
+    CityNode fireStationLocation = city.getFireStation().getLocation();
     FirefighterImpl[] arr = new FirefighterImpl[numFirefighters];
     for (int i = 0; i < numFirefighters; i++) {
-      arr[i] = new FirefighterImpl();
+      arr[i] = new FirefighterImpl(fireStationLocation);
     }
     // Set list of firefighters as an immutable list
     firefighters = List.of(arr);
@@ -54,7 +55,7 @@ public class FireDispatchImpl implements FireDispatch {
     // Create map to store optimum route for all firefighters
     Map<FirefighterImpl, List<Building>> firefighterVisitedMap = new HashMap<>();
     // Initialize route by adding the starting point
-    Building starting = new BuildingImpl(new CityNode(0,0));
+    Building starting = city.getFireStation();
     firefighters.forEach(firefighter -> {
       List<Building> visited =  new ArrayList<>(buildings.size()+1);
       visited.add(starting);
