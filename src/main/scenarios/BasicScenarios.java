@@ -1,5 +1,7 @@
 package main.scenarios;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.Assert;
@@ -24,7 +26,7 @@ public class BasicScenarios {
 
     fireDispatch.setFirefighters(1);
     fireDispatch.dispatchFirefighters(fireNode);
-    Assert.assertFalse(basicCity.getBuilding(fireNode).isBurning());
+    assertCityNotOnFire(basicCity, fireNode);
   }
 
   @Test
@@ -32,14 +34,12 @@ public class BasicScenarios {
     City basicCity = new CityImpl(5, 5, new CityNode(1, 1));
     FireDispatch fireDispatch = basicCity.getFireDispatch();
 
-    CityNode fireNode = new CityNode(0, 0);
-    Pyromaniac.setFire(basicCity, fireNode);
+    CityNode fireNode = null;
 
     fireDispatch.setFirefighters(1);
     fireDispatch.dispatchFirefighters(fireNode);
 
     Firefighter firefighter = fireDispatch.getFirefighters().get(0);
-    Assert.assertFalse(basicCity.getBuilding(fireNode).isBurning());
     Assert.assertEquals(0, firefighter.distanceTraveled());
   }
 
@@ -94,8 +94,105 @@ public class BasicScenarios {
     Firefighter firefighter = fireDispatch.getFirefighters().get(0);
     Assert.assertEquals(2, firefighter.distanceTraveled());
     Assert.assertEquals(fireNodes[1], firefighter.getLocation());
-    Assert.assertFalse(basicCity.getBuilding(fireNodes[0]).isBurning());
-    Assert.assertFalse(basicCity.getBuilding(fireNodes[1]).isBurning());
+    assertCityNotOnFire(basicCity, fireNodes);
+  }
+
+  @Test
+  public void firesInOneCluster() throws FireproofBuildingException {
+    City basicCity = new CityImpl(10, 10, new CityNode(0, 0));
+    FireDispatch fireDispatch = basicCity.getFireDispatch();
+
+    CityNode[] fireNodes = {
+            new CityNode(3, 3),
+            new CityNode(3, 4),
+            new CityNode(4, 3),
+            new CityNode(4, 4),
+            new CityNode(5, 5)};
+    Pyromaniac.setFires(basicCity, fireNodes);
+
+    fireDispatch.setFirefighters(1);
+    fireDispatch.dispatchFirefighters(fireNodes);
+
+    Firefighter firefighter = fireDispatch.getFirefighters().get(0);
+    Assert.assertEquals(12, firefighter.distanceTraveled());
+    Assert.assertEquals(fireNodes[4], firefighter.getLocation());
+    assertCityNotOnFire(basicCity, fireNodes);
+  }
+
+  @Test
+  public void firesInOneClusterTwoFirefighters() throws FireproofBuildingException {
+    City basicCity = new CityImpl(10, 10, new CityNode(0, 0));
+    FireDispatch fireDispatch = basicCity.getFireDispatch();
+
+    CityNode[] fireNodes = {
+            new CityNode(3, 3),
+            new CityNode(3, 4),
+            new CityNode(4, 3),
+            new CityNode(4, 4),
+            new CityNode(5, 5)};
+    Pyromaniac.setFires(basicCity, fireNodes);
+
+    fireDispatch.setFirefighters(2);
+    fireDispatch.dispatchFirefighters(fireNodes);
+
+    int totalDistance = fireDispatch.getFirefighters().stream().mapToInt(Firefighter::distanceTraveled).sum();
+    Assert.assertEquals(12, totalDistance);
+    Assert.assertTrue(fireDispatch.getFirefighters().stream()
+            .anyMatch(firefighter -> firefighter.getLocation().equals(fireNodes[4])));
+    assertCityNotOnFire(basicCity, fireNodes);
+  }
+
+  @Test
+  public void firesInOneClusterRandom() throws FireproofBuildingException {
+    City basicCity = new CityImpl(10, 10, new CityNode(0, 0));
+    FireDispatch fireDispatch = basicCity.getFireDispatch();
+    CityNode lastNode = new CityNode(5, 5);
+
+    CityNode[] fireNodes = {
+            new CityNode(3, 3),
+            new CityNode(3, 4),
+            new CityNode(4, 3),
+            new CityNode(4, 4),
+            lastNode};
+    List<CityNode> cityNodes = Arrays.asList(fireNodes);
+    Collections.shuffle(cityNodes);
+    cityNodes.toArray(fireNodes);
+    Pyromaniac.setFires(basicCity, fireNodes);
+
+    fireDispatch.setFirefighters(1);
+    fireDispatch.dispatchFirefighters(fireNodes);
+
+    Firefighter firefighter = fireDispatch.getFirefighters().get(0);
+    Assert.assertEquals(12, firefighter.distanceTraveled());
+    Assert.assertEquals(lastNode, firefighter.getLocation());
+    assertCityNotOnFire(basicCity, fireNodes);
+  }
+
+  @Test
+  public void firesInOneRandomClusterTwoFirefighters() throws FireproofBuildingException {
+    City basicCity = new CityImpl(10, 10, new CityNode(0, 0));
+    FireDispatch fireDispatch = basicCity.getFireDispatch();
+    CityNode lastLocation = new CityNode(5, 5);
+
+    CityNode[] fireNodes = {
+            new CityNode(3, 3),
+            new CityNode(3, 4),
+            new CityNode(4, 3),
+            new CityNode(4, 4),
+            lastLocation};
+    List<CityNode> cityNodes = Arrays.asList(fireNodes);
+    Collections.shuffle(cityNodes);
+    cityNodes.toArray(fireNodes);
+    Pyromaniac.setFires(basicCity, fireNodes);
+
+    fireDispatch.setFirefighters(2);
+    fireDispatch.dispatchFirefighters(fireNodes);
+
+    int totalDistance = fireDispatch.getFirefighters().stream().mapToInt(Firefighter::distanceTraveled).sum();
+    Assert.assertEquals(12, totalDistance);
+    Assert.assertTrue(fireDispatch.getFirefighters().stream()
+            .anyMatch(firefighter -> firefighter.getLocation().equals(lastLocation)));
+    assertCityNotOnFire(basicCity, fireNodes);
   }
 
   @Test
@@ -130,7 +227,13 @@ public class BasicScenarios {
     Assert.assertEquals(2, totalDistanceTraveled);
     Assert.assertTrue(firefighterPresentAtFireOne);
     Assert.assertTrue(firefighterPresentAtFireTwo);
-    Assert.assertFalse(basicCity.getBuilding(fireNodes[0]).isBurning());
-    Assert.assertFalse(basicCity.getBuilding(fireNodes[1]).isBurning());
+    assertCityNotOnFire(basicCity, fireNodes);
+  }
+
+  private void assertCityNotOnFire(City city, CityNode... fireNodes) {
+    Arrays.stream(fireNodes)
+            .map(city::getBuilding)
+            .forEach(building -> Assert
+                    .assertFalse("Building should not be on fire but was.", building.isBurning()));
   }
 }

@@ -7,7 +7,6 @@ import main.api.*;
 import main.api.exceptions.FireproofBuildingException;
 import main.api.exceptions.InvalidScenarioException;
 import main.api.exceptions.NoFireFoundException;
-import main.impls.BuildingImpl;
 
 public class FireDispatchImpl implements FireDispatch {
   private final City city;
@@ -31,7 +30,8 @@ public class FireDispatchImpl implements FireDispatch {
 
   @Override
   public List<Firefighter> getFirefighters() {
-    return firefighters.parallelStream().map(vigile -> (Firefighter) vigile).collect(Collectors.toUnmodifiableList());
+    // Return defensive copy
+    return firefighters.parallelStream().map(Firefighter.class::cast).collect(Collectors.toUnmodifiableList());
   }
 
   @Override
@@ -45,8 +45,12 @@ public class FireDispatchImpl implements FireDispatch {
     // firefighters to visit all the buildings
     // We need to generate test permutation of building visit order
     // with any combination of firefighters visiting that building
+
+    // Remove any null values and any buildings not burning
     List<Building> buildings = Arrays.stream(burningBuildings)
+            .filter(Objects::nonNull)
             .map(city::getBuilding)
+            .filter(Building::isBurning)
             .collect(Collectors.toList());
 
     // ---- Set up parameters for recursive method ---- //
@@ -98,7 +102,7 @@ public class FireDispatchImpl implements FireDispatch {
         building.extinguishFire();
         pathCost += currLocation.getLocation().distanceTo(building.getLocation());
         // Optimization to possibly reduce number of branches the
-//        if (pathCost < result.cost)
+        if (pathCost < result.cost)
           minDistanceTraveled(buildings, firefighterVisitedMap, pathCost, count+1, result);
         // Remove building as visited
         pathCost -= currLocation.getLocation().distanceTo(building.getLocation());
